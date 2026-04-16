@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>근호 밖으로 꺼내기 챌린지</title>
+    <title>근호 밖으로 꺼내기 챌린지 (객관식)</title>
     <style>
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
             text-align: center; 
-            background-color: #f0f8ff; 
+            background-color: #f4f7f6; 
             padding: 20px; 
             margin: 0;
         }
@@ -18,60 +18,73 @@
             margin: 0 auto; 
             padding: 30px 20px; 
             border-radius: 15px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
         }
         h1 { color: #333; font-size: 26px; margin-bottom: 10px; }
         p.guide { color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
         .question-box { 
             font-size: 60px; 
-            margin: 30px 0; 
+            margin: 20px 0; 
             color: #2c3e50; 
             font-weight: bold; 
         }
-        .input-area { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 10px; 
-            margin-bottom: 25px; 
-            font-size: 40px; 
+        
+        /* 4지선다 버튼 그리드 스타일 */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .option-btn {
+            background-color: #ffffff;
+            color: #333;
+            border: 2px solid #4CAF50;
+            padding: 20px 10px;
+            font-size: 24px;
             font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        input[type="number"] { 
-            width: 70px; 
-            height: 60px; 
-            font-size: 30px; 
-            text-align: center; 
-            border: 3px solid #ddd; 
-            border-radius: 10px; 
-            transition: 0.2s;
+        
+        .option-btn:hover {
+            background-color: #e8f5e9;
+            transform: translateY(-2px);
         }
-        input[type="number"]:focus {
+        
+        /* 정답/오답 시 버튼 색상 변화 */
+        .option-btn.correct-btn {
+            background-color: #4CAF50;
+            color: white;
             border-color: #4CAF50;
-            outline: none;
         }
-        button { 
-            background-color: #4CAF50; 
-            color: white; 
-            border: none; 
-            padding: 15px 40px; 
-            font-size: 20px; 
-            font-weight: bold;
-            border-radius: 10px; 
-            cursor: pointer; 
-            transition: 0.3s; 
-            width: 100%;
-            box-sizing: border-box;
+        .option-btn.wrong-btn {
+            background-color: #f44336;
+            color: white;
+            border-color: #f44336;
+            animation: shake 0.4s;
         }
-        button:hover { background-color: #45a049; }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
         #message { 
             font-size: 20px; 
             font-weight: bold; 
-            margin-top: 20px; 
+            margin-top: 15px; 
             min-height: 30px; 
         }
-        .correct { color: #2e7d32; }
-        .wrong { color: #d32f2f; }
+        .correct-text { color: #2e7d32; }
+        .wrong-text { color: #d32f2f; }
+        
         #score-board { 
             font-size: 18px; 
             color: #444; 
@@ -89,9 +102,7 @@
 <div id="game-container">
     <h1>🎯 근호 밖으로 꺼내기 챌린지</h1>
     <p class="guide">
-        주어진 수의 근호를 최대한 간단히 하세요!<br>
-        <strong>예시:</strong> 루트 8 ➔ [ 2 ] √ [ 2 ]<br>
-        <strong>주의:</strong> 루트 4처럼 정수로 딱 떨어지면 <strong>근호 안은 비워두세요.</strong>
+        주어진 수의 근호를 최대한 간단히 한 것을 고르세요!<br>
     </p>
 
     <div id="score-board">현재 점수: <span id="score">0</span>점</div>
@@ -100,94 +111,100 @@
         &radic;<span id="question-number">8</span>
     </div>
 
-    <div class="input-area">
-        <input type="number" id="out-val" placeholder="밖">
-        &radic;<input type="number" id="in-val" placeholder="안">
-    </div>
-
-    <button onclick="checkAnswer()">정답 확인</button>
+    <div class="options-grid" id="options-container">
+        </div>
 
     <div id="message"></div>
 </div>
 
 <script>
-    // 선생님이 요청하신 숫자로만 구성된 문제 리스트
+    // 선생님이 요청하신 숫자에 학생들이 흔히 실수하는 오답 보기 3개를 추가했습니다.
     const questions = [
-        { q: 4, out: 2, in: 1 },
-        { q: 8, out: 2, in: 2 },
-        { q: 9, out: 3, in: 1 },
-        { q: 16, out: 4, in: 1 },
-        { q: 18, out: 3, in: 2 },
-        { q: 20, out: 2, in: 5 },
-        { q: 24, out: 2, in: 6 },
-        { q: 25, out: 5, in: 1 },
-        { q: 32, out: 4, in: 2 },
-        { q: 36, out: 6, in: 1 },
-        { q: 45, out: 3, in: 5 },
-        { q: 48, out: 4, in: 3 },
-        { q: 49, out: 7, in: 1 },
-        { q: 50, out: 5, in: 2 },
-        { q: 52, out: 2, in: 13 },
-        { q: 64, out: 8, in: 1 },
-        { q: 81, out: 9, in: 1 },
-        { q: 100, out: 10, in: 1 }
+        { q: 4, options: ["2", "4", "2√2", "1"], answer: "2" },
+        { q: 8, options: ["2√2", "4√2", "2√4", "8"], answer: "2√2" },
+        { q: 9, options: ["3", "9", "3√3", "1"], answer: "3" },
+        { q: 16, options: ["4", "8", "2√4", "4√2"], answer: "4" },
+        { q: 18, options: ["3√2", "2√3", "9√2", "2√9"], answer: "3√2" },
+        { q: 20, options: ["2√5", "5√2", "4√5", "2√10"], answer: "2√5" },
+        { q: 24, options: ["2√6", "6√2", "4√6", "3√8"], answer: "2√6" },
+        { q: 25, options: ["5", "25", "5√5", "1"], answer: "5" },
+        { q: 32, options: ["4√2", "2√4", "8√2", "2√16"], answer: "4√2" },
+        { q: 36, options: ["6", "18", "6√6", "4√9"], answer: "6" },
+        { q: 45, options: ["3√5", "5√3", "9√5", "3√15"], answer: "3√5" },
+        { q: 48, options: ["4√3", "3√4", "8√3", "2√12"], answer: "4√3" },
+        { q: 49, options: ["7", "14", "7√7", "1"], answer: "7" },
+        { q: 50, options: ["5√2", "2√5", "10√5", "5√10"], answer: "5√2" },
+        { q: 52, options: ["2√13", "13√2", "4√13", "2√26"], answer: "2√13" },
+        { q: 64, options: ["8", "16", "8√8", "4√4"], answer: "8" },
+        { q: 81, options: ["9", "18", "9√9", "3√3"], answer: "9" },
+        { q: 100, options: ["10", "50", "10√10", "5√2"], answer: "10" }
     ];
 
     let currentQuestion = null;
     let score = 0;
+    let isAnswering = false; // 중복 클릭 방지용
 
     function nextQuestion() {
+        isAnswering = false;
+        document.getElementById('message').innerText = '';
+        
         // 랜덤으로 문제 선택
         const randomIndex = Math.floor(Math.random() * questions.length);
         currentQuestion = questions[randomIndex];
         
-        // 화면 업데이트
         document.getElementById('question-number').innerText = currentQuestion.q;
-        document.getElementById('out-val').value = '';
-        document.getElementById('in-val').value = '';
-        document.getElementById('message').innerText = '';
         
-        // 입력창에 자동으로 포커스
-        document.getElementById('out-val').focus();
+        // 보기 배열을 복사한 후 섞기 (매번 보기 위치가 달라지도록)
+        let shuffledOptions = [...currentQuestion.options];
+        shuffledOptions.sort(() => Math.random() - 0.5);
+
+        const container = document.getElementById('options-container');
+        container.innerHTML = ''; // 기존 버튼 지우기
+
+        // 섞인 보기들로 버튼 생성
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt);
+            container.appendChild(btn);
+        });
     }
 
-    function checkAnswer() {
-        const outInputStr = document.getElementById('out-val').value.trim();
-        const inInputStr = document.getElementById('in-val').value.trim();
+    function checkAnswer(clickedBtn, selectedAnswer) {
+        if (isAnswering) return; // 이미 정답을 처리 중이면 클릭 무시
+        isAnswering = true;
+
         const messageEl = document.getElementById('message');
+        const allButtons = document.querySelectorAll('.option-btn');
 
-        if (outInputStr === '') {
-            messageEl.innerText = "근호 밖의 숫자를 입력해주세요!";
-            messageEl.className = "wrong";
-            return;
-        }
-
-        const outInput = parseInt(outInputStr);
-        // 근호 안이 정답(1)인데 비워둔 경우 1로 간주하여 처리
-        const inInput = inInputStr === '' ? 1 : parseInt(inInputStr);
-
-        // 정답 판별
-        if (outInput === currentQuestion.out && inInput === currentQuestion.in) {
+        if (selectedAnswer === currentQuestion.answer) {
+            // 정답인 경우
+            clickedBtn.classList.add('correct-btn');
             messageEl.innerText = "🎉 정답입니다! 훌륭해요!";
-            messageEl.className = "correct";
+            messageEl.className = "correct-text";
             score += 10;
             document.getElementById('score').innerText = score;
             
-            // 1.2초 후 다음 문제로 자동 이동
-            setTimeout(nextQuestion, 1200); 
+            // 1초 후 다음 문제로 자동 이동
+            setTimeout(nextQuestion, 1000); 
         } else {
-            messageEl.innerText = "❌ 다시 한 번 계산해 볼까요?";
-            messageEl.className = "wrong";
+            // 오답인 경우
+            clickedBtn.classList.add('wrong-btn');
+            messageEl.innerText = "❌ 다시 한 번 생각해 볼까요?";
+            messageEl.className = "wrong-text";
+            
+            // 진짜 정답 버튼 초록색으로 알려주기
+            allButtons.forEach(btn => {
+                if (btn.innerText === currentQuestion.answer) {
+                    btn.classList.add('correct-btn');
+                }
+            });
+
+            // 오답일 경우 2초 후 다음 문제로 이동하여 복습할 시간을 줌
+            setTimeout(nextQuestion, 2000);
         }
     }
-
-    // 학생들이 엔터키를 쳐도 정답 확인이 되도록 설정
-    document.getElementById('out-val').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') document.getElementById('in-val').focus();
-    });
-    document.getElementById('in-val').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') checkAnswer();
-    });
 
     // 앱 시작 시 첫 문제 로드
     window.onload = nextQuestion;
