@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>근호 밖으로 꺼내기 챌린지 (객관식)</title>
+    <title>근호 밖으로 꺼내기 챌린지</title>
     <style>
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
@@ -22,13 +22,33 @@
         }
         h1 { color: #333; font-size: 26px; margin-bottom: 10px; }
         p.guide { color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
-        .question-box { 
-            font-size: 60px; 
-            margin: 20px 0; 
-            color: #2c3e50; 
-            font-weight: bold; 
-        }
         
+        /* ⭐️ 수정한 부분: 루트 기호와 지붕(윗선) 디자인 */
+        .question-box { 
+            margin: 30px 0; 
+            display: flex;
+            justify-content: center;
+        }
+        .math-root {
+            display: inline-flex;
+            align-items: flex-start;
+            color: #2c3e50;
+        }
+        .math-root .symbol {
+            font-size: 70px; /* 루트 꼬리 크기 */
+            line-height: 1;
+            font-family: 'Times New Roman', serif; /* 기호가 가장 예쁘게 나오는 폰트 */
+            margin-right: -2px; /* 간격 미세 조정 */
+        }
+        .math-root .number {
+            font-size: 60px;
+            font-weight: bold;
+            border-top: 5px solid #2c3e50; /* ⭐️ 루트 지붕(윗선) 생성 */
+            padding: 5px 15px 0 5px; /* 숫자 주변 여백 */
+            margin-top: 13px; /* 지붕과 기호 연결 위치 조정 */
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
         /* 4지선다 버튼 그리드 스타일 */
         .options-grid {
             display: grid;
@@ -108,7 +128,10 @@
     <div id="score-board">현재 점수: <span id="score">0</span>점</div>
 
     <div class="question-box">
-        &radic;<span id="question-number">8</span>
+        <div class="math-root">
+            <span class="symbol">&radic;</span>
+            <span class="number" id="question-number">8</span>
+        </div>
     </div>
 
     <div class="options-grid" id="options-container">
@@ -118,7 +141,6 @@
 </div>
 
 <script>
-    // 선생님이 요청하신 숫자에 학생들이 흔히 실수하는 오답 보기 3개를 추가했습니다.
     const questions = [
         { q: 4, options: ["2", "4", "2√2", "1"], answer: "2" },
         { q: 8, options: ["2√2", "4√2", "2√4", "8"], answer: "2√2" },
@@ -142,26 +164,23 @@
 
     let currentQuestion = null;
     let score = 0;
-    let isAnswering = false; // 중복 클릭 방지용
+    let isAnswering = false; 
 
     function nextQuestion() {
         isAnswering = false;
         document.getElementById('message').innerText = '';
         
-        // 랜덤으로 문제 선택
         const randomIndex = Math.floor(Math.random() * questions.length);
         currentQuestion = questions[randomIndex];
         
         document.getElementById('question-number').innerText = currentQuestion.q;
         
-        // 보기 배열을 복사한 후 섞기 (매번 보기 위치가 달라지도록)
         let shuffledOptions = [...currentQuestion.options];
         shuffledOptions.sort(() => Math.random() - 0.5);
 
         const container = document.getElementById('options-container');
-        container.innerHTML = ''; // 기존 버튼 지우기
+        container.innerHTML = ''; 
 
-        // 섞인 보기들로 버튼 생성
         shuffledOptions.forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
@@ -172,41 +191,35 @@
     }
 
     function checkAnswer(clickedBtn, selectedAnswer) {
-        if (isAnswering) return; // 이미 정답을 처리 중이면 클릭 무시
+        if (isAnswering) return; 
         isAnswering = true;
 
         const messageEl = document.getElementById('message');
         const allButtons = document.querySelectorAll('.option-btn');
 
         if (selectedAnswer === currentQuestion.answer) {
-            // 정답인 경우
             clickedBtn.classList.add('correct-btn');
             messageEl.innerText = "🎉 정답입니다! 훌륭해요!";
             messageEl.className = "correct-text";
             score += 10;
             document.getElementById('score').innerText = score;
             
-            // 1초 후 다음 문제로 자동 이동
             setTimeout(nextQuestion, 1000); 
         } else {
-            // 오답인 경우
             clickedBtn.classList.add('wrong-btn');
             messageEl.innerText = "❌ 다시 한 번 생각해 볼까요?";
             messageEl.className = "wrong-text";
             
-            // 진짜 정답 버튼 초록색으로 알려주기
             allButtons.forEach(btn => {
                 if (btn.innerText === currentQuestion.answer) {
                     btn.classList.add('correct-btn');
                 }
             });
 
-            // 오답일 경우 2초 후 다음 문제로 이동하여 복습할 시간을 줌
             setTimeout(nextQuestion, 2000);
         }
     }
 
-    // 앱 시작 시 첫 문제 로드
     window.onload = nextQuestion;
 </script>
 
