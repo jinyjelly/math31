@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>근호 밖으로 꺼내기 챌린지</title>
+    <style>
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            text-align: center; 
+            background-color: #f0f8ff; 
+            padding: 20px; 
+            margin: 0;
+        }
+        #game-container { 
+            background: white; 
+            max-width: 450px; 
+            margin: 0 auto; 
+            padding: 30px 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        }
+        h1 { color: #333; font-size: 26px; margin-bottom: 10px; }
+        p.guide { color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        .question-box { 
+            font-size: 60px; 
+            margin: 30px 0; 
+            color: #2c3e50; 
+            font-weight: bold; 
+        }
+        .input-area { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 10px; 
+            margin-bottom: 25px; 
+            font-size: 40px; 
+            font-weight: bold;
+        }
+        input[type="number"] { 
+            width: 70px; 
+            height: 60px; 
+            font-size: 30px; 
+            text-align: center; 
+            border: 3px solid #ddd; 
+            border-radius: 10px; 
+            transition: 0.2s;
+        }
+        input[type="number"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        button { 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            padding: 15px 40px; 
+            font-size: 20px; 
+            font-weight: bold;
+            border-radius: 10px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button:hover { background-color: #45a049; }
+        #message { 
+            font-size: 20px; 
+            font-weight: bold; 
+            margin-top: 20px; 
+            min-height: 30px; 
+        }
+        .correct { color: #2e7d32; }
+        .wrong { color: #d32f2f; }
+        #score-board { 
+            font-size: 18px; 
+            color: #444; 
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>🎯 근호 밖으로 꺼내기 챌린지</h1>
+    <p class="guide">
+        주어진 수의 근호를 최대한 간단히 하세요!<br>
+        <strong>예시:</strong> 루트 8 ➔ [ 2 ] √ [ 2 ]<br>
+        <strong>주의:</strong> 루트 4처럼 정수로 딱 떨어지면 <strong>근호 안은 비워두세요.</strong>
+    </p>
+
+    <div id="score-board">현재 점수: <span id="score">0</span>점</div>
+
+    <div class="question-box">
+        &radic;<span id="question-number">8</span>
+    </div>
+
+    <div class="input-area">
+        <input type="number" id="out-val" placeholder="밖">
+        &radic;<input type="number" id="in-val" placeholder="안">
+    </div>
+
+    <button onclick="checkAnswer()">정답 확인</button>
+
+    <div id="message"></div>
+</div>
+
+<script>
+    // 선생님이 요청하신 숫자로만 구성된 문제 리스트
+    const questions = [
+        { q: 4, out: 2, in: 1 },
+        { q: 8, out: 2, in: 2 },
+        { q: 9, out: 3, in: 1 },
+        { q: 16, out: 4, in: 1 },
+        { q: 18, out: 3, in: 2 },
+        { q: 20, out: 2, in: 5 },
+        { q: 24, out: 2, in: 6 },
+        { q: 25, out: 5, in: 1 },
+        { q: 32, out: 4, in: 2 },
+        { q: 36, out: 6, in: 1 },
+        { q: 45, out: 3, in: 5 },
+        { q: 48, out: 4, in: 3 },
+        { q: 49, out: 7, in: 1 },
+        { q: 50, out: 5, in: 2 },
+        { q: 52, out: 2, in: 13 },
+        { q: 64, out: 8, in: 1 },
+        { q: 81, out: 9, in: 1 },
+        { q: 100, out: 10, in: 1 }
+    ];
+
+    let currentQuestion = null;
+    let score = 0;
+
+    function nextQuestion() {
+        // 랜덤으로 문제 선택
+        const randomIndex = Math.floor(Math.random() * questions.length);
+        currentQuestion = questions[randomIndex];
+        
+        // 화면 업데이트
+        document.getElementById('question-number').innerText = currentQuestion.q;
+        document.getElementById('out-val').value = '';
+        document.getElementById('in-val').value = '';
+        document.getElementById('message').innerText = '';
+        
+        // 입력창에 자동으로 포커스
+        document.getElementById('out-val').focus();
+    }
+
+    function checkAnswer() {
+        const outInputStr = document.getElementById('out-val').value.trim();
+        const inInputStr = document.getElementById('in-val').value.trim();
+        const messageEl = document.getElementById('message');
+
+        if (outInputStr === '') {
+            messageEl.innerText = "근호 밖의 숫자를 입력해주세요!";
+            messageEl.className = "wrong";
+            return;
+        }
+
+        const outInput = parseInt(outInputStr);
+        // 근호 안이 정답(1)인데 비워둔 경우 1로 간주하여 처리
+        const inInput = inInputStr === '' ? 1 : parseInt(inInputStr);
+
+        // 정답 판별
+        if (outInput === currentQuestion.out && inInput === currentQuestion.in) {
+            messageEl.innerText = "🎉 정답입니다! 훌륭해요!";
+            messageEl.className = "correct";
+            score += 10;
+            document.getElementById('score').innerText = score;
+            
+            // 1.2초 후 다음 문제로 자동 이동
+            setTimeout(nextQuestion, 1200); 
+        } else {
+            messageEl.innerText = "❌ 다시 한 번 계산해 볼까요?";
+            messageEl.className = "wrong";
+        }
+    }
+
+    // 학생들이 엔터키를 쳐도 정답 확인이 되도록 설정
+    document.getElementById('out-val').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') document.getElementById('in-val').focus();
+    });
+    document.getElementById('in-val').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') checkAnswer();
+    });
+
+    // 앱 시작 시 첫 문제 로드
+    window.onload = nextQuestion;
+</script>
+
+</body>
+</html>
